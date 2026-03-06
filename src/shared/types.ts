@@ -269,3 +269,25 @@ export interface XHSErrorContext {
 }
 
 // Error classes moved to ./errors.ts
+
+/**
+ * Like operation result
+ */
+export interface LikeResult {
+  readonly success: boolean;
+  readonly message: string;
+  readonly feedId: string;
+  readonly action: 'liked' | 'already_liked' | 'unliked';
+  readonly url: string;
+}
+
+/**
+ * Collect operation result
+ */
+export interface CollectResult {
+  readonly success: boolean;
+  readonly message: string;
+  readonly feedId: string;
+  readonly action: 'collected' | 'already_collected' | 'uncollected';
+  readonly url: string;
+}

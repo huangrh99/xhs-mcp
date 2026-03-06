@@ -200,6 +200,27 @@ export class ToolHandlers {
     }
   }
 
+
+  async handleLikeNote(
+    feedId?: string,
+    xsecToken?: string,
+    browserPath?: string
+  ): Promise<{ content: Array<{ type: string; text: string }> }> {
+    validateRequiredParams({ feedId, xsecToken }, ['feedId', 'xsecToken']);
+    const result = await this.feedService.likeNote(feedId!, xsecToken!, browserPath);
+    return createMcpToolResponse(result);
+  }
+
+  async handleCollectNote(
+    feedId?: string,
+    xsecToken?: string,
+    browserPath?: string
+  ): Promise<{ content: Array<{ type: string; text: string }> }> {
+    validateRequiredParams({ feedId, xsecToken }, ['feedId', 'xsecToken']);
+    const result = await this.feedService.collectNote(feedId!, xsecToken!, browserPath);
+    return createMcpToolResponse(result);
+  }
+
   async handleToolRequest(
     name: string,
     args: ToolRequestArgs = {}
@@ -257,6 +278,20 @@ export class ToolHandlers {
           return await this.handleDeleteNote(
             args?.note_id as string,
             args?.last_published as boolean,
+            args?.browser_path as string
+          );
+
+        case 'xhs_like_note':
+          return await this.handleLikeNote(
+            args?.feed_id as string,
+            args?.xsec_token as string,
+            args?.browser_path as string
+          );
+
+        case 'xhs_collect_note':
+          return await this.handleCollectNote(
+            args?.feed_id as string,
+            args?.xsec_token as string,
             args?.browser_path as string
           );
 

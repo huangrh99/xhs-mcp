@@ -8,6 +8,8 @@ import {
   SearchResult,
   FeedDetailResult,
   CommentResult,
+  LikeResult,
+  CollectResult,
   FeedItem,
 } from '../../shared/types';
 import {
@@ -344,4 +346,158 @@ export class FeedService extends BaseService {
       );
     }
   }
+  async likeNote(
+    feedId: string,
+    xsecToken: string,
+    browserPath?: string
+  ): Promise<LikeResult> {
+    if (!feedId || !xsecToken) {
+      throw new FeedError('feed_id and xsec_token are required');
+    }
+
+    try {
+      const page = await this.getBrowserManager().createPage(false, browserPath, true);
+
+      try {
+        const detailUrl = makeFeedDetailUrl(feedId, xsecToken);
+        await this.getBrowserManager().navigateWithRetry(page, detailUrl);
+        await sleep(2000);
+
+        if (!(await isLoggedIn(page))) {
+          throw new NotLoggedInError('Must be logged in to like notes', {
+            operation: 'like_note',
+            feedId,
+          });
+        }
+
+        const likeButtonSelector = 'span.like-wrapper';
+        if (!(await this.getBrowserManager().tryWaitForSelector(page, likeButtonSelector))) {
+          throw new FeedError('Like button not found on page', { feedId, selector: likeButtonSelector });
+        }
+
+        const isAlreadyLiked = await page.evaluate(() => {
+          const el = document.querySelector('span.like-wrapper');
+          if (!el) return false;
+          return el.classList.contains('active') ||
+                 el.getAttribute('aria-pressed') === 'true' ||
+                 !!el.querySelector('[class*="active"]');
+        });
+
+        if (isAlreadyLiked) {
+          return {
+            success: true,
+            message: 'Note is already liked',
+            feedId,
+            action: 'already_liked',
+            url: detailUrl,
+          };
+        }
+
+        const likeButton = await page.$(likeButtonSelector);
+        if (likeButton) {
+          await likeButton.click();
+        }
+        await sleep(1500);
+
+        return {
+          success: true,
+          message: 'Note liked successfully',
+          feedId,
+          action: 'liked',
+          url: detailUrl,
+        };
+      } finally {
+        await page.close();
+      }
+    } catch (error) {
+      if (error instanceof FeedError || error instanceof NotLoggedInError) {
+        throw error;
+      }
+      logger.error(`Failed to like note ${feedId}: ${error}`);
+      throw new XHSError(
+        `Failed to like note: ${error}`,
+        'LikeNoteError',
+        { feedId },
+        error as Error
+      );
+    }
+  }
+
+  async collectNote(
+    feedId: string,
+    xsecToken: string,
+    browserPath?: string
+  ): Promise<CollectResult> {
+    if (!feedId || !xsecToken) {
+      throw new FeedError('feed_id and xsec_token are required');
+    }
+
+    try {
+      const page = await this.getBrowserManager().createPage(false, browserPath, true);
+
+      try {
+        const detailUrl = makeFeedDetailUrl(feedId, xsecToken);
+        await this.getBrowserManager().navigateWithRetry(page, detailUrl);
+        await sleep(2000);
+
+        if (!(await isLoggedIn(page))) {
+          throw new NotLoggedInError('Must be logged in to collect notes', {
+            operation: 'collect_note',
+            feedId,
+          });
+        }
+
+        const collectButtonSelector = 'span.collect-wrapper';
+        if (!(await this.getBrowserManager().tryWaitForSelector(page, collectButtonSelector))) {
+          throw new FeedError('Collect button not found on page', { feedId, selector: collectButtonSelector });
+        }
+
+        const isAlreadyCollected = await page.evaluate(() => {
+          const el = document.querySelector('span.collect-wrapper');
+          if (!el) return false;
+          return el.classList.contains('active') ||
+                 el.getAttribute('aria-pressed') === 'true' ||
+                 !!el.querySelector('[class*="active"]');
+        });
+
+        if (isAlreadyCollected) {
+          return {
+            success: true,
+            message: 'Note is already collected',
+            feedId,
+            action: 'already_collected',
+            url: detailUrl,
+          };
+        }
+
+        const collectButton = await page.$(collectButtonSelector);
+        if (collectButton) {
+          await collectButton.click();
+        }
+        await sleep(1500);
+
+        return {
+          success: true,
+          message: 'Note collected successfully',
+          feedId,
+          action: 'collected',
+          url: detailUrl,
+        };
+      } finally {
+        await page.close();
+      }
+    } catch (error) {
+      if (error instanceof FeedError || error instanceof NotLoggedInError) {
+        throw error;
+      }
+      logger.error(`Failed to collect note ${feedId}: ${error}`);
+      throw new XHSError(
+        `Failed to collect note: ${error}`,
+        'CollectNoteError',
+        { feedId },
+        error as Error
+      );
+    }
+  }
+
 }

@@ -208,6 +208,51 @@ export const XHS_TOOL_SCHEMAS: ToolSchema[] = [
       },
     },
   },
+  {
+    name: 'xhs_like_note',
+    description: 'Like a XiaoHongShu note. If the note is already liked, returns already_liked status.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        feed_id: {
+          type: 'string',
+          description: 'Feed ID (required)',
+        },
+        xsec_token: {
+          type: 'string',
+          description: 'Security token for the feed (required)',
+        },
+        browser_path: {
+          type: 'string',
+          description: 'Optional custom browser binary path',
+        },
+      },
+      required: ['feed_id', 'xsec_token'],
+    },
+  },
+  {
+    name: 'xhs_collect_note',
+    description: 'Collect (bookmark/favorite) a XiaoHongShu note. If already collected, returns already_collected status.',
+    inputSchema: {
+      type: 'object' as const,
+      properties: {
+        feed_id: {
+          type: 'string',
+          description: 'Feed ID (required)',
+        },
+        xsec_token: {
+          type: 'string',
+          description: 'Security token for the feed (required)',
+        },
+        browser_path: {
+          type: 'string',
+          description: 'Optional custom browser binary path',
+        },
+      },
+      required: ['feed_id', 'xsec_token'],
+    },
+  },
+
 ];
 
 export const XHS_RESOURCE_SCHEMAS = [
